@@ -1,0 +1,49 @@
+# HouseGPT Personality Injector Dependencies
+# Core dependencies for local operation without PostgreSQL
+
+# Core ML/NLP
+torch>=2.0.0
+transformers>=4.30.0
+peft>=0.4.0
+sentence-transformers>=2.2.2
+
+# Local vector storage
+faiss-cpu>=1.7.4
+numpy>=1.24.0
+
+# Audio processing
+whisper-openai>=20230314
+TTS>=0.13.0
+pyaudio>=0.2.11
+librosa>=0.10.0
+soundfile>=0.12.1
+
+# API and utilities
+fastapi>=0.100.0
+uvicorn>=0.22.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Data handling
+pandas>=2.0.0
+python-dateutil>=2.8.2
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Logging and monitoring
+loguru>=0.7.0
+
+# Optional voice cloning (XTTS)
+coqui-tts>=0.13.0
+
+# Development utilities
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.4.0
+
+# Note: Install with specific GPU support if available:
+# For CUDA: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# For CPU-only: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu

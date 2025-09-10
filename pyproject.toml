@@ -1,0 +1,120 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "housegpt-personality-injector"
+version = "1.0.0"
+description = "HouseGPT Personality Injector with RAG and Rule-Based Style Filter"
+authors = [{name = "HouseGPT Team"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["ai", "chatbot", "house-md", "personality", "rag", "voice-synthesis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.35.0",
+    "peft>=0.6.0",
+    "sentence-transformers>=2.2.0",
+    "openai-whisper>=20231117",
+    "TTS>=0.20.0",
+    "pyaudio>=0.2.11",
+    "soundfile>=0.12.1",
+    "librosa>=0.10.1",
+    "psycopg2-binary>=2.9.7",
+    "pgvector>=0.2.3",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.4.0",
+    "pydantic-settings>=2.0.0",
+    "click>=8.1.7",
+    "tqdm>=4.66.0",
+    "numpy>=1.24.0",
+    "pandas>=2.1.0",
+    "structlog>=23.2.0",
+    "rich>=13.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.12.0",
+    "black>=23.9.0",
+    "flake8>=6.1.0",
+    "pre-commit>=3.5.0",
+]
+
+[project.scripts]
+housegpt = "src.cli.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/housegpt/personality-injector"
+Repository = "https://github.com/housegpt/personality-injector"
+Documentation = "https://housegpt.readthedocs.io"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["src*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".eggs",
+    "*.egg",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "-ra",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "contract: marks tests as contract tests",
+    "unit: marks tests as unit tests",
+    "asyncio: marks tests as async tests",
+]
