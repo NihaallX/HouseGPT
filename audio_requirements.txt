@@ -1,0 +1,28 @@
+# Audio and Voice Dependencies for HouseGPT
+# Run: pip install -r audio_requirements.txt
+
+# Text-to-Speech (TTS)
+TTS>=0.22.0                    # Coqui TTS for voice synthesis
+soundfile>=0.12.1              # Audio file I/O
+
+# Audio input/output
+pyaudio>=0.2.11                # Audio recording/playback
+sounddevice>=0.4.6             # Alternative audio backend
+pygame>=2.5.0                  # Audio playback alternative
+
+# Audio processing
+librosa>=0.10.0                # Audio analysis and processing
+numpy>=1.24.0                  # Numerical operations (likely already installed)
+scipy>=1.10.0                  # Signal processing
+
+# Optional: Speech Recognition improvements
+openai-whisper>=20231117       # Already installed, but ensuring latest version
+
+# Optional: Additional audio formats
+pydub>=0.25.1                  # Audio format conversion
+ffmpeg-python>=0.2.0           # FFmpeg bindings
+
+# Note: Some packages may require system dependencies:
+# - PyAudio requires PortAudio (Windows: install via conda or use pre-built wheels)
+# - TTS may require additional system libraries
+# - On Windows, consider using conda for audio packages: conda install pyaudio soundfile

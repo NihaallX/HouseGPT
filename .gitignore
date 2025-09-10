@@ -1,0 +1,29 @@
+# Large model files
+*.pth
+*.pt
+*.data.pt
+
+# Cache and logs
+__pycache__/
+*.pyc
+logs/
+training_logs/
+lightning_logs/
+
+# Audio files (can be large)
+*.wav
+*.mp3
+*.flac
+
+# Environment files
+.env
+.venv/
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
