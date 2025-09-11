@@ -1,623 +1,401 @@
 #!/usr/bin/env python3
 """Database schema initialization script for HouseGPT.
 
-Sets up PostgreSQL database with required tables, indexes, and extensions
-for HouseGPT conversation logging, user preferences, and vector storage.
+Sets up PostgreSQL database with required tables for:
+- Conversation logging
+- User preferences  
+- House quotes and embeddings
+- System state management
 """
 
-import argparse
+import logging
 import sys
 import os
-import logging
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
+import argparse
+from datetime import datetime
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 try:
-    import psycopg2
-    from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-    from psycopg2 import sql
-    HAS_PSYCOPG2 = True
-except ImportError:
-    HAS_PSYCOPG2 = False
+    from src.lib.db_utils import DatabaseManager, DatabaseConfig
+    from src.models.configuration import HouseGPTConfig, load_config
+    HAS_DATABASE_SUPPORT = True
+except ImportError as e:
+    HAS_DATABASE_SUPPORT = False
+    print(f"Database utilities not available: {e}")
 
-from src.lib.db_utils import DatabaseManager, DatabaseConfig
-from src.models.configuration import HouseGPTConfig
-
-
-# SQL for database creation
-CREATE_DATABASE_SQL = """
-CREATE DATABASE {database_name}
-    WITH ENCODING 'UTF8'
-    LC_COLLATE = 'en_US.UTF-8'
-    LC_CTYPE = 'en_US.UTF-8'
-    TEMPLATE = template0;
-"""
-
-# SQL for extensions
-CREATE_EXTENSIONS_SQL = [
-    "CREATE EXTENSION IF NOT EXISTS vector;",
-    "CREATE EXTENSION IF NOT EXISTS pg_trgm;",
-    "CREATE EXTENSION IF NOT EXISTS btree_gin;",
-    "CREATE EXTENSION IF NOT EXISTS uuid-ossp;"
-]
-
-# SQL for table creation
-CREATE_TABLES_SQL = {
+# SQL for creating database schema
+SCHEMA_SQL = {
     "conversations": """
-    CREATE TABLE IF NOT EXISTS conversations (
-        id SERIAL PRIMARY KEY,
-        conversation_id VARCHAR(255) NOT NULL,
-        user_input TEXT NOT NULL,
-        house_response TEXT NOT NULL,
-        timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        session_id VARCHAR(255),
-        user_id VARCHAR(255),
-        model_version VARCHAR(100),
-        response_time_ms INTEGER,
-        metadata JSONB,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
+        CREATE TABLE IF NOT EXISTS conversations (
+            id SERIAL PRIMARY KEY,
+            conversation_id VARCHAR(255) NOT NULL,
+            user_input TEXT NOT NULL,
+            house_response TEXT NOT NULL,
+            timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            session_id VARCHAR(255),
+            user_id VARCHAR(255),
+            model_version VARCHAR(100),
+            response_time_ms INTEGER,
+            confidence_score FLOAT,
+            style_score FLOAT,
+            metadata JSONB,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_conversations_conversation_id ON conversations(conversation_id);
+        CREATE INDEX IF NOT EXISTS idx_conversations_session_id ON conversations(session_id);
+        CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);
+        CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON conversations(timestamp);
+        CREATE INDEX IF NOT EXISTS idx_conversations_created_at ON conversations(created_at);
     """,
     
     "user_preferences": """
-    CREATE TABLE IF NOT EXISTS user_preferences (
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL,
-        preference_key VARCHAR(255) NOT NULL,
-        preference_value JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT unique_user_preference UNIQUE(user_id, preference_key)
-    );
-    """,
-    
-    "system_state": """
-    CREATE TABLE IF NOT EXISTS system_state (
-        id SERIAL PRIMARY KEY,
-        state_key VARCHAR(255) UNIQUE NOT NULL,
-        state_value JSONB NOT NULL,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
+        CREATE TABLE IF NOT EXISTS user_preferences (
+            id SERIAL PRIMARY KEY,
+            user_id VARCHAR(255) NOT NULL,
+            preference_key VARCHAR(255) NOT NULL,
+            preference_value JSONB NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, preference_key)
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);
+        CREATE INDEX IF NOT EXISTS idx_user_preferences_key ON user_preferences(preference_key);
     """,
     
     "house_quotes": """
-    CREATE TABLE IF NOT EXISTS house_quotes (
-        id SERIAL PRIMARY KEY,
-        quote_text TEXT NOT NULL,
-        context TEXT,
-        episode VARCHAR(100),
-        season INTEGER,
-        character VARCHAR(100) DEFAULT 'House',
-        tags TEXT[],
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
+        CREATE TABLE IF NOT EXISTS house_quotes (
+            id SERIAL PRIMARY KEY,
+            quote_text TEXT NOT NULL,
+            episode_season INTEGER,
+            episode_number INTEGER,
+            episode_title VARCHAR(255),
+            character_speaker VARCHAR(100) DEFAULT 'House',
+            context_description TEXT,
+            medical_relevance BOOLEAN DEFAULT FALSE,
+            emotional_tone VARCHAR(50),
+            quote_category VARCHAR(100),
+            source_accuracy VARCHAR(20) DEFAULT 'verified',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_season_episode ON house_quotes(episode_season, episode_number);
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_speaker ON house_quotes(character_speaker);
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_category ON house_quotes(quote_category);
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_medical ON house_quotes(medical_relevance);
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_text_search ON house_quotes USING gin(to_tsvector('english', quote_text));
     """,
     
     "house_quotes_embeddings": """
-    CREATE TABLE IF NOT EXISTS house_quotes_embeddings (
-        id SERIAL PRIMARY KEY,
-        quote_id INTEGER REFERENCES house_quotes(id) ON DELETE CASCADE,
-        embedding vector(384),
-        embedding_model VARCHAR(255) NOT NULL DEFAULT 'sentence-transformers/all-MiniLM-L6-v2',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
+        CREATE TABLE IF NOT EXISTS house_quotes_embeddings (
+            id SERIAL PRIMARY KEY,
+            quote_id INTEGER NOT NULL REFERENCES house_quotes(id) ON DELETE CASCADE,
+            embedding_model VARCHAR(255) NOT NULL,
+            embedding_vector VECTOR(384), -- Default dimension for all-MiniLM-L6-v2
+            embedding_metadata JSONB,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(quote_id, embedding_model)
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_embeddings_quote_id ON house_quotes_embeddings(quote_id);
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_embeddings_model ON house_quotes_embeddings(embedding_model);
+        -- Vector similarity index will be created after pgvector is available
+    """,
+    
+    "system_state": """
+        CREATE TABLE IF NOT EXISTS system_state (
+            id SERIAL PRIMARY KEY,
+            state_key VARCHAR(255) UNIQUE NOT NULL,
+            state_value JSONB NOT NULL,
+            description TEXT,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_by VARCHAR(255)
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_system_state_key ON system_state(state_key);
+        CREATE INDEX IF NOT EXISTS idx_system_state_updated ON system_state(updated_at);
     """,
     
     "conversation_sessions": """
-    CREATE TABLE IF NOT EXISTS conversation_sessions (
-        id SERIAL PRIMARY KEY,
-        session_id VARCHAR(255) UNIQUE NOT NULL,
-        user_id VARCHAR(255),
-        start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        end_time TIMESTAMP WITH TIME ZONE,
-        interaction_count INTEGER DEFAULT 0,
-        total_response_time_ms INTEGER DEFAULT 0,
-        session_metadata JSONB,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
+        CREATE TABLE IF NOT EXISTS conversation_sessions (
+            id SERIAL PRIMARY KEY,
+            session_id VARCHAR(255) UNIQUE NOT NULL,
+            user_id VARCHAR(255),
+            session_type VARCHAR(50) DEFAULT 'interactive', -- interactive, text_only, voice
+            started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            ended_at TIMESTAMP WITH TIME ZONE,
+            total_exchanges INTEGER DEFAULT 0,
+            avg_response_time_ms FLOAT,
+            session_metadata JSONB,
+            is_active BOOLEAN DEFAULT TRUE
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_conversation_sessions_session_id ON conversation_sessions(session_id);
+        CREATE INDEX IF NOT EXISTS idx_conversation_sessions_user_id ON conversation_sessions(user_id);
+        CREATE INDEX IF NOT EXISTS idx_conversation_sessions_started ON conversation_sessions(started_at);
+        CREATE INDEX IF NOT EXISTS idx_conversation_sessions_active ON conversation_sessions(is_active);
     """,
     
     "model_performance": """
-    CREATE TABLE IF NOT EXISTS model_performance (
-        id SERIAL PRIMARY KEY,
-        model_version VARCHAR(100) NOT NULL,
-        query_hash VARCHAR(64) NOT NULL,
-        response_time_ms INTEGER NOT NULL,
-        memory_usage_mb FLOAT,
-        gpu_usage_percent FLOAT,
-        style_score FLOAT,
-        user_rating INTEGER CHECK (user_rating >= 1 AND user_rating <= 5),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
+        CREATE TABLE IF NOT EXISTS model_performance (
+            id SERIAL PRIMARY KEY,
+            model_version VARCHAR(100) NOT NULL,
+            metric_name VARCHAR(100) NOT NULL,
+            metric_value FLOAT NOT NULL,
+            metric_metadata JSONB,
+            measurement_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            environment VARCHAR(50) DEFAULT 'production'
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_model_performance_version ON model_performance(model_version);
+        CREATE INDEX IF NOT EXISTS idx_model_performance_metric ON model_performance(metric_name);
+        CREATE INDEX IF NOT EXISTS idx_model_performance_timestamp ON model_performance(measurement_timestamp);
     """
 }
 
-# SQL for indexes
-CREATE_INDEXES_SQL = [
-    # Conversations table indexes
-    "CREATE INDEX IF NOT EXISTS idx_conversations_conversation_id ON conversations(conversation_id);",
-    "CREATE INDEX IF NOT EXISTS idx_conversations_session_id ON conversations(session_id);",
-    "CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);",
-    "CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON conversations(timestamp);",
-    "CREATE INDEX IF NOT EXISTS idx_conversations_metadata ON conversations USING gin(metadata);",
+# Functions for schema initialization
+def check_dependencies() -> bool:
+    """Check if all required dependencies are available."""
+    if not HAS_DATABASE_SUPPORT:
+        print("❌ Database support not available. Please install psycopg2-binary.")
+        return False
     
-    # User preferences indexes
-    "CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);",
-    "CREATE INDEX IF NOT EXISTS idx_user_preferences_key ON user_preferences(preference_key);",
-    
-    # House quotes indexes
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_episode ON house_quotes(episode);",
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_season ON house_quotes(season);",
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_character ON house_quotes(character);",
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_tags ON house_quotes USING gin(tags);",
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_text_search ON house_quotes USING gin(to_tsvector('english', quote_text));",
-    
-    # House quotes embeddings indexes
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_embeddings_quote_id ON house_quotes_embeddings(quote_id);",
-    "CREATE INDEX IF NOT EXISTS idx_house_quotes_embeddings_vector ON house_quotes_embeddings USING ivfflat(embedding vector_cosine_ops) WITH (lists = 100);",
-    
-    # Session indexes
-    "CREATE INDEX IF NOT EXISTS idx_conversation_sessions_session_id ON conversation_sessions(session_id);",
-    "CREATE INDEX IF NOT EXISTS idx_conversation_sessions_user_id ON conversation_sessions(user_id);",
-    "CREATE INDEX IF NOT EXISTS idx_conversation_sessions_start_time ON conversation_sessions(start_time);",
-    
-    # Performance indexes
-    "CREATE INDEX IF NOT EXISTS idx_model_performance_model_version ON model_performance(model_version);",
-    "CREATE INDEX IF NOT EXISTS idx_model_performance_created_at ON model_performance(created_at);",
-    "CREATE INDEX IF NOT EXISTS idx_model_performance_response_time ON model_performance(response_time_ms);"
-]
-
-# SQL for functions and triggers
-CREATE_FUNCTIONS_SQL = [
-    """
-    CREATE OR REPLACE FUNCTION update_updated_at_column()
-    RETURNS TRIGGER AS $$
-    BEGIN
-        NEW.updated_at = CURRENT_TIMESTAMP;
-        RETURN NEW;
-    END;
-    $$ language 'plpgsql';
-    """,
-    
-    """
-    CREATE OR REPLACE FUNCTION calculate_similarity_score(query_embedding vector(384), quote_embedding vector(384))
-    RETURNS FLOAT AS $$
-    BEGIN
-        RETURN 1 - (query_embedding <=> quote_embedding);
-    END;
-    $$ language 'plpgsql';
-    """,
-    
-    """
-    CREATE OR REPLACE FUNCTION search_house_quotes(query_text TEXT, similarity_threshold FLOAT DEFAULT 0.7, max_results INTEGER DEFAULT 5)
-    RETURNS TABLE(
-        quote_id INTEGER,
-        quote_text TEXT,
-        context TEXT,
-        episode VARCHAR,
-        similarity_score FLOAT
-    ) AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT 
-            hq.id,
-            hq.quote_text,
-            hq.context,
-            hq.episode,
-            (1 - (get_query_embedding(query_text) <=> hqe.embedding)) AS sim_score
-        FROM house_quotes hq
-        JOIN house_quotes_embeddings hqe ON hq.id = hqe.quote_id
-        WHERE (1 - (get_query_embedding(query_text) <=> hqe.embedding)) >= similarity_threshold
-        ORDER BY sim_score DESC
-        LIMIT max_results;
-    END;
-    $$ language 'plpgsql';
-    """
-]
-
-# SQL for triggers
-CREATE_TRIGGERS_SQL = [
-    """
-    DROP TRIGGER IF EXISTS update_user_preferences_updated_at ON user_preferences;
-    CREATE TRIGGER update_user_preferences_updated_at
-        BEFORE UPDATE ON user_preferences
-        FOR EACH ROW
-        EXECUTE FUNCTION update_updated_at_column();
-    """,
-    
-    """
-    DROP TRIGGER IF EXISTS update_system_state_updated_at ON system_state;
-    CREATE TRIGGER update_system_state_updated_at
-        BEFORE UPDATE ON system_state
-        FOR EACH ROW
-        EXECUTE FUNCTION update_updated_at_column();
-    """
-]
-
-# Initial data for system state
-INITIAL_DATA_SQL = [
-    """
-    INSERT INTO system_state (state_key, state_value) 
-    VALUES ('database_version', '{"version": "1.0.0", "created_at": "2025-09-11"}')
-    ON CONFLICT (state_key) DO NOTHING;
-    """,
-    
-    """
-    INSERT INTO system_state (state_key, state_value)
-    VALUES ('model_info', '{"default_model": "google/flan-t5-large", "adapter_path": "housegpt-lora-large"}')
-    ON CONFLICT (state_key) DO NOTHING;
-    """
-]
-
-
-class DatabaseSetup:
-    """Database setup and initialization manager."""
-    
-    def __init__(self, config: DatabaseConfig):
-        """Initialize database setup.
-        
-        Args:
-            config: Database configuration
-        """
-        self.config = config
-        self.logger = logging.getLogger(__name__)
-        
-    def create_database(self) -> bool:
-        """Create the HouseGPT database if it doesn't exist.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        if not HAS_PSYCOPG2:
-            self.logger.error("psycopg2 not available")
-            return False
-        
-        try:
-            # Connect to PostgreSQL server (not specific database)
-            conn_params = {
-                "host": self.config.host,
-                "port": self.config.port,
-                "user": self.config.username,
-                "password": self.config.password,
-                "dbname": "postgres"  # Connect to default database
-            }
-            
-            self.logger.info(f"Connecting to PostgreSQL server at {self.config.host}:{self.config.port}")
-            
-            with psycopg2.connect(**conn_params) as conn:
-                conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-                
-                with conn.cursor() as cursor:
-                    # Check if database exists
-                    cursor.execute(
-                        "SELECT 1 FROM pg_database WHERE datname = %s",
-                        (self.config.database,)
-                    )
-                    
-                    if cursor.fetchone():
-                        self.logger.info(f"Database '{self.config.database}' already exists")
-                        return True
-                    
-                    # Create database
-                    self.logger.info(f"Creating database '{self.config.database}'")
-                    cursor.execute(
-                        sql.SQL(CREATE_DATABASE_SQL).format(
-                            database_name=sql.Identifier(self.config.database)
-                        )
-                    )
-                    
-                    self.logger.info(f"✅ Database '{self.config.database}' created successfully")
-                    return True
-                    
-        except Exception as e:
-            self.logger.error(f"Failed to create database: {e}")
-            return False
-    
-    def setup_extensions(self) -> bool:
-        """Set up required PostgreSQL extensions.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Setting up PostgreSQL extensions...")
-            
-            for extension_sql in CREATE_EXTENSIONS_SQL:
-                result = db_manager.execute_query(extension_sql, fetch=False)
-                if result is None:
-                    self.logger.warning(f"Failed to execute: {extension_sql}")
-            
-            self.logger.info("✅ Extensions setup completed")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to setup extensions: {e}")
-            return False
-    
-    def create_tables(self) -> bool:
-        """Create all required tables.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Creating database tables...")
-            
-            for table_name, table_sql in CREATE_TABLES_SQL.items():
-                self.logger.info(f"Creating table: {table_name}")
-                result = db_manager.execute_query(table_sql, fetch=False)
-                if result is None:
-                    self.logger.warning(f"Failed to create table: {table_name}")
-            
-            self.logger.info("✅ Tables created successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to create tables: {e}")
-            return False
-    
-    def create_indexes(self) -> bool:
-        """Create database indexes for performance.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Creating database indexes...")
-            
-            for index_sql in CREATE_INDEXES_SQL:
-                result = db_manager.execute_query(index_sql, fetch=False)
-                if result is None:
-                    self.logger.warning(f"Failed to create index: {index_sql[:50]}...")
-            
-            self.logger.info("✅ Indexes created successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to create indexes: {e}")
-            return False
-    
-    def create_functions(self) -> bool:
-        """Create database functions and stored procedures.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Creating database functions...")
-            
-            for function_sql in CREATE_FUNCTIONS_SQL:
-                result = db_manager.execute_query(function_sql, fetch=False)
-                if result is None:
-                    self.logger.warning(f"Failed to create function: {function_sql[:50]}...")
-            
-            self.logger.info("✅ Functions created successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to create functions: {e}")
-            return False
-    
-    def create_triggers(self) -> bool:
-        """Create database triggers.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Creating database triggers...")
-            
-            for trigger_sql in CREATE_TRIGGERS_SQL:
-                result = db_manager.execute_query(trigger_sql, fetch=False)
-                if result is None:
-                    self.logger.warning(f"Failed to create trigger: {trigger_sql[:50]}...")
-            
-            self.logger.info("✅ Triggers created successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to create triggers: {e}")
-            return False
-    
-    def insert_initial_data(self) -> bool:
-        """Insert initial system data.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Inserting initial data...")
-            
-            for data_sql in INITIAL_DATA_SQL:
-                result = db_manager.execute_query(data_sql, fetch=False)
-                if result is None:
-                    self.logger.warning(f"Failed to insert data: {data_sql[:50]}...")
-            
-            self.logger.info("✅ Initial data inserted successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to insert initial data: {e}")
-            return False
-    
-    def setup_complete_database(self) -> bool:
-        """Run complete database setup process.
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        self.logger.info("🏥 Starting HouseGPT database setup...")
-        
-        steps = [
-            ("Creating database", self.create_database),
-            ("Setting up extensions", self.setup_extensions),
-            ("Creating tables", self.create_tables),
-            ("Creating indexes", self.create_indexes),
-            ("Creating functions", self.create_functions),
-            ("Creating triggers", self.create_triggers),
-            ("Inserting initial data", self.insert_initial_data)
-        ]
-        
-        for step_name, step_function in steps:
-            self.logger.info(f"Step: {step_name}")
-            if not step_function():
-                self.logger.error(f"Failed at step: {step_name}")
-                return False
-        
-        self.logger.info("🎉 Database setup completed successfully!")
+    try:
+        import psycopg2
         return True
-    
-    def verify_setup(self) -> bool:
-        """Verify database setup is correct.
-        
-        Returns:
-            True if verification successful, False otherwise
+    except ImportError:
+        print("❌ psycopg2 not available. Please install psycopg2-binary.")
+        return False
+
+
+def check_pgvector_extension(db_manager: DatabaseManager) -> bool:
+    """Check if pgvector extension is available."""
+    try:
+        result = db_manager.execute_query("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+        return result is not None and len(result) > 0
+    except Exception as e:
+        logging.warning(f"Could not check pgvector extension: {e}")
+        return False
+
+
+def create_pgvector_extension(db_manager: DatabaseManager) -> bool:
+    """Create pgvector extension if possible."""
+    try:
+        db_manager.execute_query("CREATE EXTENSION IF NOT EXISTS vector", fetch=False)
+        print("✅ Created pgvector extension")
+        return True
+    except Exception as e:
+        print(f"⚠️  Could not create pgvector extension: {e}")
+        print("   Vector similarity search will not be available.")
+        return False
+
+
+def create_vector_indexes(db_manager: DatabaseManager) -> bool:
+    """Create vector similarity indexes."""
+    try:
+        # Create HNSW index for vector similarity search
+        vector_index_sql = """
+        CREATE INDEX IF NOT EXISTS idx_house_quotes_embeddings_vector_hnsw 
+        ON house_quotes_embeddings 
+        USING hnsw (embedding_vector vector_cosine_ops) 
+        WITH (m = 16, ef_construction = 64);
         """
-        try:
-            db_manager = DatabaseManager(self.config)
-            
-            self.logger.info("Verifying database setup...")
-            
-            # Check tables exist
-            tables_to_check = list(CREATE_TABLES_SQL.keys())
-            
-            for table in tables_to_check:
-                result = db_manager.execute_query(
-                    "SELECT 1 FROM information_schema.tables WHERE table_name = %s",
-                    (table,)
-                )
-                
-                if not result:
-                    self.logger.error(f"Table '{table}' not found")
-                    return False
-            
-            # Check extensions
-            result = db_manager.execute_query(
-                "SELECT extname FROM pg_extension WHERE extname IN ('vector', 'pg_trgm', 'btree_gin', 'uuid-ossp')"
+        
+        db_manager.execute_query(vector_index_sql, fetch=False)
+        print("✅ Created vector similarity indexes")
+        return True
+    except Exception as e:
+        print(f"⚠️  Could not create vector indexes: {e}")
+        return False
+
+
+def initialize_system_state(db_manager: DatabaseManager) -> bool:
+    """Initialize default system state values."""
+    default_states = [
+        {
+            "state_key": "schema_version",
+            "state_value": {"version": "1.0.0", "created": datetime.now().isoformat()},
+            "description": "Database schema version"
+        },
+        {
+            "state_key": "model_status",
+            "state_value": {"status": "uninitialized", "last_check": None},
+            "description": "AI model loading status"
+        },
+        {
+            "state_key": "quotes_loaded",
+            "state_value": {"loaded": False, "count": 0, "last_update": None},
+            "description": "House quotes loading status"
+        },
+        {
+            "state_key": "embeddings_generated",
+            "state_value": {"generated": False, "model": None, "count": 0},
+            "description": "Quote embeddings generation status"
+        }
+    ]
+    
+    try:
+        for state in default_states:
+            db_manager.execute_query(
+                """
+                INSERT INTO system_state (state_key, state_value, description, updated_by)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (state_key) 
+                DO UPDATE SET 
+                    updated_at = CURRENT_TIMESTAMP,
+                    updated_by = EXCLUDED.updated_by
+                """,
+                (state["state_key"], state["state_value"], state["description"], "setup_database.py"),
+                fetch=False
             )
+        
+        print("✅ Initialized system state")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to initialize system state: {e}")
+        return False
+
+
+def create_database_schema(config: Optional[HouseGPTConfig] = None, 
+                          force: bool = False) -> bool:
+    """Create complete database schema.
+    
+    Args:
+        config: HouseGPT configuration
+        force: Force recreation of existing tables
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    if not check_dependencies():
+        return False
+    
+    # Load configuration
+    if config is None:
+        try:
+            config = load_config()
+        except Exception as e:
+            print(f"❌ Failed to load configuration: {e}")
+            return False
+    
+    # Create database manager
+    db_config = DatabaseConfig(
+        host=config.database.host,
+        port=config.database.port,
+        database=config.database.database,
+        username=config.database.username,
+        password=config.database.password
+    )
+    
+    db_manager = DatabaseManager(db_config)
+    
+    if db_manager.state.value != "connected":
+        print(f"❌ Failed to connect to database: {db_manager._last_error}")
+        return False
+    
+    print(f"✅ Connected to database: {config.database.host}:{config.database.port}/{config.database.database}")
+    
+    # Check and create pgvector extension
+    has_pgvector = check_pgvector_extension(db_manager)
+    if not has_pgvector:
+        has_pgvector = create_pgvector_extension(db_manager)
+    else:
+        print("✅ pgvector extension already available")
+    
+    # Create tables
+    success_count = 0
+    total_tables = len(SCHEMA_SQL)
+    
+    for table_name, table_sql in SCHEMA_SQL.items():
+        try:
+            print(f"📋 Creating table: {table_name}")
             
-            if not result or len(result) < 2:  # At least vector and pg_trgm should be there
-                self.logger.error("Required extensions not found")
-                return False
+            if force:
+                # Drop table if force is enabled
+                drop_sql = f"DROP TABLE IF EXISTS {table_name} CASCADE"
+                db_manager.execute_query(drop_sql, fetch=False)
+                print(f"   Dropped existing table: {table_name}")
             
-            self.logger.info("✅ Database verification passed")
-            return True
+            # Create table
+            db_manager.execute_query(table_sql, fetch=False)
+            print(f"✅ Created table: {table_name}")
+            success_count += 1
             
         except Exception as e:
-            self.logger.error(f"Database verification failed: {e}")
-            return False
+            print(f"❌ Failed to create table {table_name}: {e}")
+    
+    # Create vector indexes if pgvector is available
+    if has_pgvector:
+        create_vector_indexes(db_manager)
+    
+    # Initialize system state
+    initialize_system_state(db_manager)
+    
+    # Print summary
+    print(f"\n📊 Schema creation summary:")
+    print(f"   Tables created: {success_count}/{total_tables}")
+    print(f"   pgvector available: {has_pgvector}")
+    print(f"   Vector indexes: {has_pgvector}")
+    
+    if success_count == total_tables:
+        print("🎉 Database schema initialization completed successfully!")
+        return True
+    else:
+        print("⚠️  Database schema initialization completed with errors.")
+        return False
 
 
 def main():
     """Main function for database setup script."""
-    parser = argparse.ArgumentParser(description="HouseGPT Database Setup")
-    parser.add_argument(
-        "--config",
-        type=str,
-        help="Path to configuration file"
-    )
-    parser.add_argument(
-        "--host",
-        type=str,
-        default="localhost",
-        help="Database host (default: localhost)"
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=5432,
-        help="Database port (default: 5432)"
-    )
-    parser.add_argument(
-        "--database",
-        type=str,
-        default="housegpt",
-        help="Database name (default: housegpt)"
-    )
-    parser.add_argument(
-        "--username",
-        type=str,
-        default="postgres",
-        help="Database username (default: postgres)"
-    )
-    parser.add_argument(
-        "--password",
-        type=str,
-        help="Database password (will prompt if not provided)"
-    )
-    parser.add_argument(
-        "--verify-only",
-        action="store_true",
-        help="Only verify existing setup, don't create anything"
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enable verbose logging"
-    )
+    parser = argparse.ArgumentParser(description="Initialize HouseGPT database schema")
+    parser.add_argument("--config", "-c", help="Path to configuration file")
+    parser.add_argument("--force", "-f", action="store_true", 
+                       help="Force recreation of existing tables")
+    parser.add_argument("--verbose", "-v", action="store_true", 
+                       help="Enable verbose logging")
     
     args = parser.parse_args()
     
-    # Setup logging
-    level = logging.DEBUG if args.verbose else logging.INFO
+    # Configure logging
+    log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
-        level=level,
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        level=log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     
-    logger = logging.getLogger(__name__)
+    print("🏥 HouseGPT Database Schema Initialization")
+    print("=" * 50)
     
-    if not HAS_PSYCOPG2:
-        logger.error("psycopg2 not available. Please install: pip install psycopg2-binary")
-        return 1
-    
-    # Get database configuration
+    # Load configuration
+    config = None
     if args.config:
-        config = HouseGPTConfig.from_env(args.config)
-        db_config = config.database
+        try:
+            config = load_config(args.config)
+            print(f"✅ Loaded configuration from: {args.config}")
+        except Exception as e:
+            print(f"❌ Failed to load configuration: {e}")
+            sys.exit(1)
+    
+    # Create schema
+    success = create_database_schema(config, force=args.force)
+    
+    if success:
+        print("\n🎉 Database initialization completed successfully!")
+        print("   You can now run:")
+        print("   - python scripts/load_quotes.py (to load House quotes)")
+        print("   - python scripts/download_models.py (to download AI models)")
+        sys.exit(0)
     else:
-        # Get password if not provided
-        password = args.password
-        if not password:
-            import getpass
-            password = getpass.getpass("Database password: ")
-        
-        db_config = DatabaseConfig(
-            host=args.host,
-            port=args.port,
-            database=args.database,
-            username=args.username,
-            password=password
-        )
-    
-    # Initialize setup
-    setup = DatabaseSetup(db_config)
-    
-    if args.verify_only:
-        success = setup.verify_setup()
-    else:
-        success = setup.setup_complete_database()
-        
-        if success:
-            success = setup.verify_setup()
-    
-    return 0 if success else 1
+        print("\n❌ Database initialization failed!")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

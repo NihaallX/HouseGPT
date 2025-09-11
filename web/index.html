@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HouseGPT - Chat with Dr. Gregory House</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.house {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            font-size: 1.05em;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.house .message-content {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .message.house .message-icon {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1.05em;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .send-button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #ffffff;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.7;
+        }
+
+        .typing-indicator .dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-indicator .dot {
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .status-info {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+                border-radius: 15px;
+            }
+
+            .message-content {
+                max-width: 85%;
+                font-size: 1em;
+            }
+
+            .chat-header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🏥 HouseGPT</h1>
+            <p>Chat with Dr. Gregory House - Everybody lies, but I tell the truth</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message house">
+                <div class="message-icon">🏥</div>
+                <div class="message-content">
+                    Everybody lies. What brings you to my office today? Make it interesting.
+                </div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-icon">🏥</div>
+            <div>
+                House is thinking...
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="Type your message to House..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-button" id="sendButton">Send</button>
+            </form>
+            <div class="status-info" id="statusInfo">
+                API Status: <span id="apiStatus">Checking...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        const API_BASE_URL = 'http://localhost:8000';
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const apiStatus = document.getElementById('apiStatus');
+
+        // Check API health on load
+        async function checkAPIHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    apiStatus.textContent = '✅ Online';
+                    apiStatus.style.color = '#4ade80';
+                } else {
+                    apiStatus.textContent = '⚠️ Unhealthy';
+                    apiStatus.style.color = '#fbbf24';
+                }
+            } catch (error) {
+                apiStatus.textContent = '❌ Offline';
+                apiStatus.style.color = '#ef4444';
+                console.error('API health check failed:', error);
+            }
+        }
+
+        // Add message to chat
+        function addMessage(content, isUser = false, metadata = {}) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'house'}`;
+            
+            const icon = document.createElement('div');
+            icon.className = 'message-icon';
+            icon.textContent = isUser ? '👤' : '🏥';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            if (isUser) {
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(icon);
+            } else {
+                messageDiv.appendChild(icon);
+                messageDiv.appendChild(contentDiv);
+                
+                // Add metadata for House responses
+                if (metadata.confidence !== undefined || metadata.sarcasm_level !== undefined) {
+                    const metaDiv = document.createElement('div');
+                    metaDiv.className = 'status-info';
+                    metaDiv.style.marginTop = '5px';
+                    metaDiv.style.fontSize = '0.8em';
+                    metaDiv.style.opacity = '0.7';
+                    
+                    let metaText = '';
+                    if (metadata.confidence !== undefined) {
+                        metaText += `Confidence: ${(metadata.confidence * 100).toFixed(0)}%`;
+                    }
+                    if (metadata.sarcasm_level !== undefined) {
+                        metaText += metaText ? ` | ` : '';
+                        metaText += `Sarcasm: ${metadata.sarcasm_level}/5`;
+                    }
+                    if (metadata.response_time !== undefined) {
+                        metaText += metaText ? ` | ` : '';
+                        metaText += `${metadata.response_time.toFixed(1)}s`;
+                    }
+                    
+                    metaDiv.textContent = metaText;
+                    contentDiv.appendChild(metaDiv);
+                }
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show/hide typing indicator
+        function showTyping(show = true) {
+            typingIndicator.style.display = show ? 'flex' : 'none';
+            if (show) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        // Send message to House
+        async function sendMessage(message) {
+            if (!message.trim()) return;
+            
+            // Add user message
+            addMessage(message, true);
+            
+            // Show typing indicator
+            showTyping(true);
+            
+            // Disable input
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        user_id: 'web_user'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Hide typing indicator
+                showTyping(false);
+                
+                // Add House response
+                addMessage(data.response, false, {
+                    confidence: data.confidence,
+                    sarcasm_level: data.sarcasm_level,
+                    response_time: data.response_time
+                });
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showTyping(false);
+                
+                // Add error message
+                addMessage(
+                    `Error: Could not reach House. ${error.message}. Try again later.`,
+                    false
+                );
+            } finally {
+                // Re-enable input
+                chatInput.disabled = false;
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+                chatInput.focus();
+            }
+        }
+
+        // Handle form submission
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (message) {
+                chatInput.value = '';
+                await sendMessage(message);
+            }
+        });
+
+        // Handle Enter key
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Auto-focus input
+        chatInput.focus();
+
+        // Check API health every 30 seconds
+        checkAPIHealth();
+        setInterval(checkAPIHealth, 30000);
+
+        // Debug: Add some test messages for development
+        console.log('HouseGPT Web Interface Loaded');
+        console.log('API Base URL:', API_BASE_URL);
+    </script>
+</body>
+</html>

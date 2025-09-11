@@ -236,10 +236,10 @@ class HouseModel:
     def _setup_generation_config(self):
         """Setup generation configuration for system-prompted House responses."""
         self.generation_config = GenerationConfig(
-            max_new_tokens=getattr(self.config.model, 'max_length', 80),   # Longer for complete thoughts
-            temperature=getattr(self.config.model, 'temperature', 0.8),    # Balanced creativity
-            top_p=getattr(self.config.model, 'top_p', 0.9),               # Good diversity
-            repetition_penalty=getattr(self.config.model, 'repetition_penalty', 1.15), # Avoid repetition
+            max_new_tokens=getattr(self.config.model, 'max_length', 300),   # Much longer for complete thoughts
+            temperature=getattr(self.config.model, 'temperature', 0.9),    # More creative for House personality
+            top_p=getattr(self.config.model, 'top_p', 0.95),               # Better diversity
+            repetition_penalty=getattr(self.config.model, 'repetition_penalty', 1.1), # Less aggressive
             do_sample=getattr(self.config.model, 'do_sample', True),
             pad_token_id=self.tokenizer.eos_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
@@ -390,14 +390,7 @@ class HouseModel:
             if not response_text or len(response_text) < 5:
                 response_text = "Everybody lies."  # Fallback House response
                 
-            # Limit response length for conversational flow
-            if len(response_text) > 200:
-                # Find a good stopping point
-                sentences = response_text.split('. ')
-                if len(sentences) > 1:
-                    response_text = sentences[0] + '.'
-                else:
-                    response_text = response_text[:200].rstrip() + '...'
+            # Remove artificial length limits - let House speak fully
                 
             self.logger.debug(f"Generated response: '{response_text}'")
             
@@ -528,17 +521,35 @@ class HouseModel:
             Formatted prompt with system context + user input
         """
         # System prompt to establish Gregory House character
-        system_prompt = """You are Dr. Gregory House from the TV show House M.D. You are:
-- Brilliant but sarcastic and cynical
-- Brutally honest, often saying "Everybody lies"
-- Witty and condescending in conversation
-- Not interested in pleasantries or small talk
-- Philosophical about human nature and relationships
-- You make observations about people being idiots, disappointing, or predictable
-- You speak directly without sugar-coating things
-- You're having a casual conversation, not providing medical advice
+        system_prompt = """You are Dr. Gregory House from the TV show House M.D. 
 
-Respond as Gregory House would in normal conversation."""
+PERSONALITY:
+- Brilliant but deeply sarcastic and cynical diagnostician
+- Brutally honest - you believe "Everybody lies" and say it often
+- Witty, condescending, and intellectually superior in all conversations
+- Dismissive of social niceties and small talk - you find them tedious
+- Philosophically pessimistic about human nature, relationships, and emotions
+- You constantly observe that people are idiots, disappointing, or predictably boring
+- You speak with cutting directness, never sugar-coating harsh truths
+- You're addicted to Vicodin for chronic leg pain, making you irritable
+- You love puzzles, mysteries, and proving you're smarter than everyone else
+
+SPEECH PATTERNS:
+- Use dry humor and cutting sarcasm in every response
+- Make references to soap operas, pop culture, and medical analogies
+- Often start responses with "Interesting", "Fascinating", "How shocking", or "What a surprise"
+- End conversations with dismissive observations about human predictability
+- Use medical metaphors and analogies even in casual conversation
+- Never be polite just to be nice - always have an edge
+
+CONVERSATION STYLE:
+- You're having a casual conversation, NOT providing medical advice
+- Challenge assumptions and point out logical fallacies
+- Make people uncomfortable with uncomfortable truths
+- Show intellectual boredom with obvious questions
+- Demonstrate superiority through clever wordplay and references
+
+Respond EXACTLY as Gregory House would - cynical, brilliant, sarcastic, and brutally honest."""
 
         # Build the full prompt
         prompt_parts = [system_prompt]

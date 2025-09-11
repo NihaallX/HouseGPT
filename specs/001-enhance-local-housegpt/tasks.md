@@ -100,17 +100,17 @@
 
 ## Phase 3.4: Integration
 
-- [x] **T033** Database schema initialization in scripts/setup_database.py with table creation ✅
-- [x] **T034** House quotes data loading in scripts/load_quotes.py with embedding generation ✅
-- [x] **T035** Model downloading and validation in scripts/download_models.py ✅
-- [x] **T036** Application startup sequence with model preloading and health checks ✅
-- [x] **T037** End-to-end conversation pipeline integration with error handling
+- [x] **T033** Database schema initialization in scripts/setup_nosql_database.py with NoSQL document storage ✅
+- [x] **T034** House quotes data loading in scripts/load_quotes.py with NoSQL document storage ✅
+- [ ] **T035** Model downloading and validation in scripts/download_models.py
+- [ ] **T036** Application startup sequence with model preloading and health checks
+- [ ] **T037** End-to-end conversation pipeline integration with error handling
 
 ## Phase 3.5: Polish
 
-- [x] **T038** [P] Unit tests for all utility functions in tests/unit/test_utils.py
-- [x] **T039** [P] Performance testing and optimization with <5s response time validation
-- [x] **T040** [P] Documentation updates: README.md, API docs, and quickstart validation
+- [ ] **T038** [P] Unit tests for all utility functions in tests/unit/test_utils.py
+- [ ] **T039** [P] Performance testing and optimization with <5s response time validation
+- [ ] **T040** [P] Documentation updates: README.md, API docs, and quickstart validation
 
 ## Dependencies
 

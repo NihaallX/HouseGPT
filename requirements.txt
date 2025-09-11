@@ -20,8 +20,8 @@ soundfile>=0.12.1
 librosa>=0.10.1
 
 # Database and Vector Search
-psycopg2-binary>=2.9.7
-pgvector>=0.2.3
+tinydb>=4.8.0
+sentence-transformers>=2.2.0
 
 # Web and API (for future extensions)
 fastapi>=0.104.0

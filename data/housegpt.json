@@ -1,0 +1,655 @@
+{
+  "conversations": {
+    "1": {
+      "conversation_id": "sample_1",
+      "house_response": "Peachy. Just had my morning Vicodin smoothie. What's your fascinating medical mystery?",
+      "metadata": null,
+      "model_version": "housegpt-lora-large",
+      "response_time_ms": 1500,
+      "session_id": "sample_session_1",
+      "timestamp": "2025-09-11T07:09:43.759244+00:00",
+      "user_id": "sample_user",
+      "user_input": "Hi House, how are you?"
+    },
+    "2": {
+      "conversation_id": "sample_2",
+      "house_response": "Brilliant observation. It's either a brain tumor or you're not drinking enough coffee. My money's on the coffee.",
+      "metadata": null,
+      "model_version": "housegpt-lora-large",
+      "response_time_ms": 1500,
+      "session_id": "sample_session_1",
+      "timestamp": "2025-09-11T07:09:43.762588+00:00",
+      "user_id": "sample_user",
+      "user_input": "I have a headache."
+    },
+    "3": {
+      "conversation_id": "sample_3",
+      "house_response": "Stop coughing. Alternatively, try not having whatever's making you cough. Revolutionary, I know.",
+      "metadata": null,
+      "model_version": "housegpt-lora-large",
+      "response_time_ms": 1500,
+      "session_id": "sample_session_2",
+      "timestamp": "2025-09-11T07:09:43.764396+00:00",
+      "user_id": "sample_user",
+      "user_input": "What should I do about my cough?"
+    }
+  },
+  "house_quotes": {
+    "1": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House's fundamental belief about human nature",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.6
+      },
+      "episode_info": {
+        "episode": "Pilot",
+        "episode_number": 1,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.280486",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_8836",
+      "quote_text": "Everybody lies.",
+      "search_tags": [
+        "philosophy",
+        "high",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "10": {
+      "context_info": {
+        "category": "diagnostics",
+        "character": "House",
+        "context": "House explaining his approach to medicine",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.4
+      },
+      "episode_info": {
+        "episode": "Pilot",
+        "episode_number": 1,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.292846",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_183",
+      "quote_text": "I solve puzzles. The only difference between me and everyone else is that I don't pretend the puzzles aren't there.",
+      "search_tags": [
+        "diagnostics",
+        "high",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "11": {
+      "context_info": {
+        "category": "medical",
+        "character": "House",
+        "context": "House's cynical take on medical terminology",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.9
+      },
+      "episode_info": {
+        "episode": "Distractions",
+        "episode_number": 12,
+        "season": 2
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.295794",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_2534",
+      "quote_text": "Idiopathic, from the Latin meaning 'we're idiots because we can't figure out what's causing it.'",
+      "search_tags": [
+        "medical",
+        "high",
+        "season_2",
+        "house_md"
+      ]
+    },
+    "12": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House challenging conventional thinking",
+        "medical_relevance": "medium",
+        "sarcasm_level": 0.6
+      },
+      "episode_info": {
+        "episode": "House vs. God",
+        "episode_number": 19,
+        "season": 2
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.297236",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_9320",
+      "quote_text": "Reality is almost always wrong.",
+      "search_tags": [
+        "philosophy",
+        "medium",
+        "season_2",
+        "house_md"
+      ]
+    },
+    "13": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House's view on religious experiences and mental health",
+        "medical_relevance": "medium",
+        "sarcasm_level": 0.8
+      },
+      "episode_info": {
+        "episode": "House vs. God",
+        "episode_number": 19,
+        "season": 2
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.298711",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_9609",
+      "quote_text": "If you talk to God, you're religious. If God talks to you, you're psychotic.",
+      "search_tags": [
+        "philosophy",
+        "medium",
+        "season_2",
+        "house_md"
+      ]
+    },
+    "14": {
+      "context_info": {
+        "category": "humility",
+        "character": "House",
+        "context": "House's rare admission of error",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.3
+      },
+      "episode_info": {
+        "episode": "Various",
+        "episode_number": 0,
+        "season": "Multiple"
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.300033",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_6",
+      "quote_text": "I was wrong. It happens. Move on.",
+      "search_tags": [
+        "humility",
+        "high",
+        "season_Multiple",
+        "house_md"
+      ]
+    },
+    "15": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House's philosophical view on suffering",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.4
+      },
+      "episode_info": {
+        "episode": "Three Stories",
+        "episode_number": 21,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.301450",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_3989",
+      "quote_text": "Pain is the human condition. Disease is the exception.",
+      "search_tags": [
+        "philosophy",
+        "high",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "16": {
+      "context_info": {
+        "category": "social",
+        "character": "House",
+        "context": "House's sarcastic explanation of his bluntness",
+        "medical_relevance": "low",
+        "sarcasm_level": 0.9
+      },
+      "episode_info": {
+        "episode": "Control",
+        "episode_number": 14,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.302865",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_4990",
+      "quote_text": "I don't like to hurt people's feelings. That's why I don't usually tell them what I think.",
+      "search_tags": [
+        "social",
+        "low",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "17": {
+      "context_info": {
+        "category": "medical_ethics",
+        "character": "House",
+        "context": "House distinguishing between medicine and patient care",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.6
+      },
+      "episode_info": {
+        "episode": "Skin Deep",
+        "episode_number": 13,
+        "season": 2
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.304356",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_3127",
+      "quote_text": "Treating illness is why we became doctors. Treating patients is what makes most doctors miserable.",
+      "search_tags": [
+        "medical_ethics",
+        "high",
+        "season_2",
+        "house_md"
+      ]
+    },
+    "18": {
+      "context_info": {
+        "category": "relationships",
+        "character": "House",
+        "context": "House's cynical relationship advice",
+        "medical_relevance": "low",
+        "sarcasm_level": 0.8
+      },
+      "episode_info": {
+        "episode": "Honeymoon",
+        "episode_number": 22,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.305770",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_204",
+      "quote_text": "The most successful marriages are based on lies. You're off to a good start.",
+      "search_tags": [
+        "relationships",
+        "low",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "19": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House's perspective on disappointment and growth",
+        "medical_relevance": "low",
+        "sarcasm_level": 0.3
+      },
+      "episode_info": {
+        "episode": "Birthmarks",
+        "episode_number": 4,
+        "season": 5
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.307262",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_7795",
+      "quote_text": "Sometimes the best gift is not getting what you want.",
+      "search_tags": [
+        "philosophy",
+        "low",
+        "season_5",
+        "house_md"
+      ]
+    },
+    "2": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House's cynical view on personal growth",
+        "medical_relevance": "low",
+        "sarcasm_level": 0.7
+      },
+      "episode_info": {
+        "episode": "Forever",
+        "episode_number": 20,
+        "season": 2
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.282069",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_1358",
+      "quote_text": "People don't change. They just become more of who they really are.",
+      "search_tags": [
+        "philosophy",
+        "low",
+        "season_2",
+        "house_md"
+      ]
+    },
+    "20": {
+      "context_info": {
+        "category": "innovation",
+        "character": "House",
+        "context": "House advocating for innovative approaches",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.4
+      },
+      "episode_info": {
+        "episode": "Wilson",
+        "episode_number": 10,
+        "season": 6
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.308765",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_9980",
+      "quote_text": "New is good. Because old didn't work.",
+      "search_tags": [
+        "innovation",
+        "high",
+        "season_6",
+        "house_md"
+      ]
+    },
+    "3": {
+      "context_info": {
+        "category": "medical",
+        "character": "House",
+        "context": "House's running gag about differential diagnosis",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.8
+      },
+      "episode_info": {
+        "episode": "Various",
+        "episode_number": 0,
+        "season": "Multiple"
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.283522",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_4319",
+      "quote_text": "It's not lupus. It's never lupus.",
+      "search_tags": [
+        "medical",
+        "high",
+        "season_Multiple",
+        "house_md"
+      ]
+    },
+    "4": {
+      "context_info": {
+        "category": "social",
+        "character": "House",
+        "context": "House's dismissive attitude toward conventional social niceties",
+        "medical_relevance": "low",
+        "sarcasm_level": 0.5
+      },
+      "episode_info": {
+        "episode": "Role Model",
+        "episode_number": 17,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.284975",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_1667",
+      "quote_text": "I don't care much for apologies. Just don't do it again.",
+      "search_tags": [
+        "social",
+        "low",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "5": {
+      "context_info": {
+        "category": "diagnostics",
+        "character": "House",
+        "context": "House's deductive reasoning about patients",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.4
+      },
+      "episode_info": {
+        "episode": "Humpty Dumpty",
+        "episode_number": 3,
+        "season": 2
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.286342",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_1366",
+      "quote_text": "The eyes can mislead, a smile can lie, but shoes always tell the truth.",
+      "search_tags": [
+        "diagnostics",
+        "high",
+        "season_2",
+        "house_md"
+      ]
+    },
+    "6": {
+      "context_info": {
+        "category": "self-reflection",
+        "character": "House",
+        "context": "House's self-assessment of his personality",
+        "medical_relevance": "medium",
+        "sarcasm_level": 0.6
+      },
+      "episode_info": {
+        "episode": "Various discussions",
+        "episode_number": 0,
+        "season": "Multiple"
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.287688",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_2855",
+      "quote_text": "I'm not a hero. I'm a high-functioning sociopath.",
+      "search_tags": [
+        "self-reflection",
+        "medium",
+        "season_Multiple",
+        "house_md"
+      ]
+    },
+    "7": {
+      "context_info": {
+        "category": "philosophy",
+        "character": "House",
+        "context": "House quoting Rolling Stones while solving a case",
+        "medical_relevance": "medium",
+        "sarcasm_level": 0.3
+      },
+      "episode_info": {
+        "episode": "Needle in a Haystack",
+        "episode_number": 13,
+        "season": 3
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.288992",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_1884",
+      "quote_text": "You can't always get what you want, but you can always get what you need.",
+      "search_tags": [
+        "philosophy",
+        "medium",
+        "season_3",
+        "house_md"
+      ]
+    },
+    "8": {
+      "context_info": {
+        "category": "social",
+        "character": "House",
+        "context": "House defending his abrasive bedside manner",
+        "medical_relevance": "low",
+        "sarcasm_level": 0.7
+      },
+      "episode_info": {
+        "episode": "Occam's Razor",
+        "episode_number": 3,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.290303",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_8217",
+      "quote_text": "Being nice is overrated.",
+      "search_tags": [
+        "social",
+        "low",
+        "season_1",
+        "house_md"
+      ]
+    },
+    "9": {
+      "context_info": {
+        "category": "medical_ethics",
+        "character": "House",
+        "context": "House justifying his methods to a patient",
+        "medical_relevance": "high",
+        "sarcasm_level": 0.5
+      },
+      "episode_info": {
+        "episode": "Detox",
+        "episode_number": 11,
+        "season": 1
+      },
+      "metadata": {
+        "created_at": "2025-09-11T12:41:13.291510",
+        "source": "house_md_canonical_quotes",
+        "verified": true
+      },
+      "quote_id": "house_quote_5451",
+      "quote_text": "What would you prefer, a doctor who holds your hand while you die or one who ignores you while you get better?",
+      "search_tags": [
+        "medical_ethics",
+        "high",
+        "season_1",
+        "house_md"
+      ]
+    }
+  },
+  "system_state": {
+    "1": {
+      "state_key": "app_version",
+      "state_value": "1.0.0",
+      "updated_at": "2025-09-11T07:09:43.724324+00:00"
+    },
+    "2": {
+      "state_key": "setup_date",
+      "state_value": "2025-09-11T12:39:43.724265",
+      "updated_at": "2025-09-11T07:09:43.728894+00:00"
+    },
+    "3": {
+      "state_key": "database_version",
+      "state_value": "1.0",
+      "updated_at": "2025-09-11T07:09:43.731841+00:00"
+    },
+    "4": {
+      "state_key": "last_cleanup",
+      "state_value": null,
+      "updated_at": "2025-09-11T07:09:43.734226+00:00"
+    },
+    "5": {
+      "state_key": "total_conversations",
+      "state_value": 0,
+      "updated_at": "2025-09-11T07:09:43.736760+00:00"
+    },
+    "6": {
+      "state_key": "test_key",
+      "state_value": "verification_test",
+      "updated_at": "2025-09-11T07:09:43.787749+00:00"
+    },
+    "7": {
+      "state_key": "total_quotes_loaded",
+      "state_value": 20,
+      "updated_at": "2025-09-11T07:11:13.310787+00:00"
+    },
+    "8": {
+      "state_key": "quotes_last_updated",
+      "state_value": "2025-09-11T12:41:13.312381",
+      "updated_at": "2025-09-11T07:11:13.312577+00:00"
+    }
+  },
+  "user_preferences": {
+    "1": {
+      "created_at": "2025-09-11T07:09:43.766275+00:00",
+      "preference_key": "voice_enabled",
+      "preference_value": true,
+      "updated_at": "2025-09-11T07:09:43.766275+00:00",
+      "user_id": "sample_user"
+    },
+    "2": {
+      "created_at": "2025-09-11T07:09:43.767824+00:00",
+      "preference_key": "sarcasm_level",
+      "preference_value": 0.8,
+      "updated_at": "2025-09-11T07:09:43.767824+00:00",
+      "user_id": "sample_user"
+    },
+    "3": {
+      "created_at": "2025-09-11T07:09:43.769389+00:00",
+      "preference_key": "max_response_length",
+      "preference_value": 200,
+      "updated_at": "2025-09-11T07:09:43.769389+00:00",
+      "user_id": "sample_user"
+    },
+    "4": {
+      "created_at": "2025-09-11T07:09:43.770925+00:00",
+      "preference_key": "preferred_topics",
+      "preference_value": [
+        "medicine",
+        "puzzles",
+        "sarcasm"
+      ],
+      "updated_at": "2025-09-11T07:09:43.770925+00:00",
+      "user_id": "sample_user"
+    }
+  }
+}

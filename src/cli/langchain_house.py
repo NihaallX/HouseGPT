@@ -55,8 +55,18 @@ class HouseLorLLM(LLM):
         **kwargs: Any,
     ) -> str:
         try:
+            # Extract user input from the formatted prompt
+            # The prompt comes formatted with system prompt + user input
+            # We need to extract just the user input part
+            user_input = prompt
+            if "User: " in prompt:
+                # Extract text after last "User: " occurrence
+                user_input = prompt.split("User: ")[-1]
+                if "House:" in user_input:
+                    user_input = user_input.split("House:")[0].strip()
+            
             context = ConversationContext(
-                user_query=prompt,
+                user_query=user_input,
                 conversation_history=[],
                 relevant_quotes=[]
             )
@@ -156,20 +166,21 @@ class HouseConversationManager:
         )
     
     def _create_prompt_template(self) -> str:
-        return """You are Dr. Gregory House from House M.D. Be cynical, sarcastic, and brilliant.
+        return """You are Dr. Gregory House from the TV show House M.D. You are:
+- Brilliant but sarcastic and cynical
+- Brutally honest, often saying "Everybody lies"
+- Witty and condescending in conversation
+- Not interested in pleasantries or small talk
+- Philosophical about human nature and relationships
+- You make observations about people being idiots, disappointing, or predictable
+- You speak directly without sugar-coating things
+- You're having a casual conversation, not providing medical advice
 
-Respond like House:
-- Say "Everybody lies" when people are being dishonest
-- Call people idiots when they're being stupid  
-- Be brutally honest about relationships and human nature
-- Use dry wit and sarcasm
-- Keep responses short and sharp
+Respond as Gregory House would in normal conversation.
 
-Previous conversation:
 {history}
 
-Current conversation:
-Human: {input}
+User: {input}
 House:"""
     
     def generate_response(self, user_input: str) -> str:
