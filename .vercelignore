@@ -1,0 +1,37 @@
+# Ignore development files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+
+# Ignore large model files (these will be downloaded at runtime)
+housegpt-lora-large/
+
+# Ignore development artifacts
+.git/
+.github/
+tests/
+docs/
+scripts/
+memory/
+templates/
+specs/
+frontend/
+
+# Ignore data files
+data/
+logs/
+
+# Keep only essential files for deployment
+!api/
+!web/
+!src/
+!requirements.txt
+!vercel.json

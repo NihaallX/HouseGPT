@@ -299,8 +299,8 @@
     </div>
 
     <script>
-        // Global variables
-        const API_BASE_URL = 'http://localhost:8000';
+        // Global variables - Use relative URL for Vercel deployment
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '/api';
         const chatMessages = document.getElementById('chatMessages');
         const chatForm = document.getElementById('chatForm');
         const chatInput = document.getElementById('chatInput');
