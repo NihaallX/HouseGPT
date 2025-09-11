@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "api/main.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "pythonVersion": "3.11"
+      }
     },
     {
       "src": "web/**",
@@ -22,7 +25,8 @@
   ],
   "functions": {
     "api/main.py": {
-      "maxDuration": 30
+      "maxDuration": 60,
+      "memory": 3008
     }
   }
 }

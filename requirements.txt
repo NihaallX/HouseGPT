@@ -1,57 +1,31 @@
-# HouseGPT Personality Injector Requirements
+# HouseGPT Core Requirements - Vercel Compatible
 # Python 3.11+ required
 
-# Core ML and AI dependencies
+# Core ML and AI dependencies  
 torch>=2.0.0
 transformers>=4.35.0
 peft>=0.6.0
-sentence-transformers>=2.2.0
-openai-whisper>=20231117
+sentencepiece>=0.1.99
 
 # LangChain for conversation management
 langchain>=0.1.0
 langchain-community>=0.0.10
-langsmith>=0.0.70
 
-# TTS and Audio
-TTS>=0.20.0
-pyaudio>=0.2.11
-soundfile>=0.12.1
-librosa>=0.10.1
-
-# Database and Vector Search
+# Data handling
 tinydb>=4.8.0
-sentence-transformers>=2.2.0
+pandas>=2.0.0
+numpy>=1.24.0
 
-# Web and API (for future extensions)
-fastapi>=0.104.0
-uvicorn>=0.24.0
+# Web API dependencies
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
 
-# Development and Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-mock>=3.12.0
-black>=23.9.0
-flake8>=6.1.0
-pre-commit>=3.5.0
-
-# Configuration and Environment
+# Configuration
 python-dotenv>=1.0.0
-pydantic>=2.4.0
-pydantic-settings>=2.0.0
 
 # Utilities
 click>=8.1.7
 tqdm>=4.66.0
-numpy>=1.24.0
-pandas>=2.1.0
-
-# Logging and Monitoring
-structlog>=23.2.0
-rich>=13.6.0
-
-# Optional GPU acceleration
---extra-index-url https://download.pytorch.org/whl/cu118
-# Uncomment for CUDA support:
-# torch>=2.0.0+cu118
 # torchaudio>=2.0.0+cu118
